@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Recognition Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        #number-container {
+            font-size: 48px;
+            margin: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        #feedback-message {
+            margin-top: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="number-container"></div>
+    <div id="feedback-message"></div>
+    <script>
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        // Check if the browser supports the SpeechRecognition API
+        if (!SpeechRecognition) {
+            alert('Atsiprašome, jūsų naršyklė nepalaiko kalbos atpažinimo.');
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'lt-LT'; // Set the language to Lithuanian
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        const numberContainer = document.getElementById('number-container');
+        const feedbackMessage = document.getElementById('feedback-message');
+        let currentNumber = null;
+
+        // Map of generated numbers to their spoken forms in Lithuanian
+        const numberMap = {
+            '0': 'nulis',
+            '1': 'vienas',
+            '2': 'du',
+            '3': 'trys',
+            '4': 'keturi',
+            '5': 'penki',
+            '6': 'šeši',
+            '7': 'septyni',
+            '8': 'aštuoni',
+            '9': 'devyni'
+        };
+
+        // Function to generate a random number and display it
+        function generateRandomNumber() {
+            currentNumber = Math.floor(Math.random() * 10).toString(); // Generate a number between 0 and 9
+            numberContainer.textContent = currentNumber;
+            feedbackMessage.textContent = 'Sakykite šį skaičių į mikrofoną:';
+            startRecognition(); // Start recognition after displaying the number
+        }
+
+        // Function to start speech recognition
+        function startRecognition() {
+            recognition.start();
+            feedbackMessage.textContent = 'Kalbėkite dabar...';
+        }
+
+        // Handle the result of speech recognition
+        recognition.onresult = (event) => {
+            const spokenNumber = event.results[0][0].transcript.trim();
+            checkSpokenNumber(spokenNumber);
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Kalbos atpažinimo klaida: ' + event.error);
+            feedbackMessage.textContent = 'Klaida, bandykite dar kartą.';
+        };
+
+        recognition.onend = () => {
+            feedbackMessage.textContent = 'Kalbėjimas baigtas.';
+            setTimeout(generateRandomNumber, 2000); // Generate a new number after 2 seconds
+        };
+
+        // Function to check spoken number
+        function checkSpokenNumber(spokenNumber) {
+            // Check if the spoken number matches the current number
+            if (spokenNumber === numberMap[currentNumber]) {
+                feedbackMessage.textContent = 'Puiku! Teisingai!';
+            } else {
+                feedbackMessage.textContent = 'Bandykite dar kartą! Teisingas atsakymas yra: ' + numberMap[currentNumber] + '.';
+            }
+        }
+
+        // Initialize the game
+        function initializeGame() {
+            generateRandomNumber(); // Generate the first number on page load
+        }
+
+        // Start the game when the page loads
+        window.onload = initializeGame;
+    </script>
+</body>
+</html>
